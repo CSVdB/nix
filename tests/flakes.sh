@@ -353,3 +353,9 @@ nix flake remove --flake-registry $registry flake1
 nix flake --flake-registry $registry check $flake3Dir
 
 nix flake clone --flake-registry $registry flake1 $TEST_ROOT/flake1-v2
+
+# Test whether we get a warning when not all flag flake overrides or used
+[[ ! (-z $(nix build -o $TEST_ROOT/result --flake-registry $registry flake4:xyzzy --override-flake flake5 flake6 2>&1)) ]]
+
+# Test whether we don't get an error when all flag flake overrides are used
+[[ -z $(nix build -o $TEST_ROOT/result --flake-registry $registry flake4:bar --override-flake flake3 flake2 2>&1) ]]

@@ -70,6 +70,8 @@ struct EvalCommand : virtual StoreCommand, MixEvalArgs
 {
     ref<EvalState> getEvalState();
 
+    ~EvalCommand();
+
 private:
 
     std::shared_ptr<EvalState> evalState;

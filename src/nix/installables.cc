@@ -56,9 +56,20 @@ SourceExprCommand::SourceExprCommand()
 
 ref<EvalState> EvalCommand::getEvalState()
 {
-    if (!evalState)
+    if (!evalState) {
         evalState = std::make_shared<EvalState>(searchPath, getStore());
+        evalState->initializeRegistries(registryOverrides);
+    }
     return ref<EvalState>(evalState);
+}
+
+EvalCommand::~EvalCommand()
+{
+    for (auto info : evalState->registries[flake::FLAG_REGISTRY]->entries) {
+        if (!info.second.used)
+            warn("the flag flake override %s to %s is not used",
+                info.first.to_string(), info.second.ref.to_string());
+    }
 }
 
 Buildable Installable::toBuildable()

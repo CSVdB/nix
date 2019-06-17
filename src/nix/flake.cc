@@ -57,18 +57,18 @@ struct CmdFlakeList : EvalCommand
 
     void run(nix::ref<nix::Store> store) override
     {
-        auto registries = getEvalState()->getFlakeRegistries();
+        auto registries = getEvalState()->registries;
 
         stopProgressBar();
 
         for (auto & entry : registries[FLAG_REGISTRY]->entries)
-            std::cout << entry.first.to_string() << " flags " << entry.second.to_string() << "\n";
+            std::cout << entry.first.to_string() << " flags " << entry.second.ref.to_string() << "\n";
 
         for (auto & entry : registries[USER_REGISTRY]->entries)
-            std::cout << entry.first.to_string() << " user " << entry.second.to_string() << "\n";
+            std::cout << entry.first.to_string() << " user " << entry.second.ref.to_string() << "\n";
 
         for (auto & entry : registries[GLOBAL_REGISTRY]->entries)
-            std::cout << entry.first.to_string() << " global " << entry.second.to_string() << "\n";
+            std::cout << entry.first.to_string() << " global " << entry.second.ref.to_string() << "\n";
     }
 };
 
@@ -137,7 +137,6 @@ struct CmdFlakeDeps : FlakeCommand
     void run(nix::ref<nix::Store> store) override
     {
         auto evalState = getEvalState();
-        evalState->addRegistryOverrides(registryOverrides);
 
         std::queue<ResolvedFlake> todo;
         todo.push(resolveFlake());
@@ -376,7 +375,7 @@ struct CmdFlakeAdd : MixEvalArgs, Command
         Path userRegistryPath = getUserRegistryPath();
         auto userRegistry = readRegistry(userRegistryPath);
         userRegistry->entries.erase(aliasRef);
-        userRegistry->entries.insert_or_assign(aliasRef, FlakeRef(uri));
+        userRegistry->entries.insert_or_assign(aliasRef, FlakeRegistry::Entry(FlakeRef(uri)));
         writeRegistry(*userRegistry, userRegistryPath);
     }
 };
@@ -484,7 +483,7 @@ struct CmdFlakeClone : FlakeCommand
     {
         auto evalState = getEvalState();
 
-        Registries registries = evalState->getFlakeRegistries();
+        Registries registries = evalState->registries;
         gitCloneFlake(getFlakeRef().to_string(), *evalState, registries, destDir);
     }
 };
