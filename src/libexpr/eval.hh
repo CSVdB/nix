@@ -125,7 +125,6 @@ private:
 public:
 
     EvalState(const Strings & _searchPath, ref<Store> store);
-    ~EvalState();
 
     void addToSearchPath(const string & s);
 

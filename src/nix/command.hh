@@ -70,8 +70,6 @@ struct EvalCommand : virtual StoreCommand, MixEvalArgs
 {
     ref<EvalState> getEvalState();
 
-    ~EvalCommand();
-
 private:
 
     std::shared_ptr<EvalState> evalState;
@@ -208,13 +206,13 @@ static RegisterCommand registerCommand(const std::string & name)
     return RegisterCommand(name, [](){ return make_ref<T>(); });
 }
 
-Buildables build(ref<Store> store, RealiseMode mode,
+Buildables build(EvalState & state, ref<Store> store, RealiseMode mode,
     std::vector<std::shared_ptr<Installable>> installables);
 
-PathSet toStorePaths(ref<Store> store, RealiseMode mode,
+PathSet toStorePaths(EvalState & state, ref<Store> store, RealiseMode mode,
     std::vector<std::shared_ptr<Installable>> installables);
 
-Path toStorePath(ref<Store> store, RealiseMode mode,
+Path toStorePath(EvalState & state, ref<Store> store, RealiseMode mode,
     std::shared_ptr<Installable> installable);
 
 PathSet toDerivations(ref<Store> store,

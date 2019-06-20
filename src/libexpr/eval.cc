@@ -350,11 +350,6 @@ EvalState::EvalState(const Strings & _searchPath, ref<Store> store)
 }
 
 
-EvalState::~EvalState()
-{
-}
-
-
 Path EvalState::checkSourcePath(const Path & path_)
 {
     if (!allowedPaths) return path_;

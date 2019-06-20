@@ -57,7 +57,9 @@ void StorePathsCommand::run(ref<Store> store)
     }
 
     else {
-        for (auto & p : toStorePaths(store, NoBuild, installables))
+        auto state = getEvalState();
+
+        for (auto & p : toStorePaths(*state, store, NoBuild, installables))
             storePaths.push_back(p);
 
         if (recursive) {
@@ -73,7 +75,9 @@ void StorePathsCommand::run(ref<Store> store)
 
 void StorePathCommand::run(ref<Store> store)
 {
-    auto storePaths = toStorePaths(store, NoBuild, installables);
+    auto state = getEvalState();
+
+    auto storePaths = toStorePaths(*state, store, NoBuild, installables);
 
     if (storePaths.size() != 1)
         throw UsageError("this command requires exactly one store path");

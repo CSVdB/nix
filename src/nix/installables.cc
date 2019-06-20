@@ -63,15 +63,6 @@ ref<EvalState> EvalCommand::getEvalState()
     return ref<EvalState>(evalState);
 }
 
-EvalCommand::~EvalCommand()
-{
-    for (auto info : evalState->registries[flake::FLAG_REGISTRY]->entries) {
-        if (!info.second.used)
-            warn("the flag flake override %s to %s is not used",
-                info.first.to_string(), info.second.ref.to_string());
-    }
-}
-
 Buildable Installable::toBuildable()
 {
     auto buildables = toBuildables();
@@ -461,7 +452,16 @@ std::shared_ptr<Installable> SourceExprCommand::parseInstallable(
     return installables.front();
 }
 
-Buildables build(ref<Store> store, RealiseMode mode,
+void checkFlagRegistryUsage (EvalState & state)
+{
+    for (auto info : state.registries[flake::FLAG_REGISTRY]->entries) {
+        if (!info.second.used)
+            warn("unused flag \"--override-flake %s %s\"",
+                info.first.to_string(), info.second.ref.to_string());
+    }
+}
+
+Buildables build(EvalState & state, ref<Store> store, RealiseMode mode,
     std::vector<std::shared_ptr<Installable>> installables)
 {
     if (mode != Build)
@@ -486,6 +486,8 @@ Buildables build(ref<Store> store, RealiseMode mode,
         }
     }
 
+    checkFlagRegistryUsage(state);
+
     if (mode == DryRun)
         printMissing(store, pathsToBuild, lvlError);
     else if (mode == Build)
@@ -494,22 +496,22 @@ Buildables build(ref<Store> store, RealiseMode mode,
     return buildables;
 }
 
-PathSet toStorePaths(ref<Store> store, RealiseMode mode,
+PathSet toStorePaths(EvalState & state, ref<Store> store, RealiseMode mode,
     std::vector<std::shared_ptr<Installable>> installables)
 {
     PathSet outPaths;
 
-    for (auto & b : build(store, mode, installables))
+    for (auto & b : build(state, store, mode, installables))
         for (auto & output : b.outputs)
             outPaths.insert(output.second);
 
     return outPaths;
 }
 
-Path toStorePath(ref<Store> store, RealiseMode mode,
+Path toStorePath(EvalState & state, ref<Store> store, RealiseMode mode,
     std::shared_ptr<Installable> installable)
 {
-    auto paths = toStorePaths(store, mode, {installable});
+    auto paths = toStorePaths(state, store, mode, {installable});
 
     if (paths.size() != 1)
         throw Error("argument '%s' should evaluate to one store path", installable->what());

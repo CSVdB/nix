@@ -70,9 +70,10 @@ struct CmdWhyDepends : SourceExprCommand
     void run(ref<Store> store) override
     {
         auto package = parseInstallable(store, _package);
-        auto packagePath = toStorePath(store, Build, package);
+        auto state = getEvalState();
+        auto packagePath = toStorePath(*state, store, Build, package);
         auto dependency = parseInstallable(store, _dependency);
-        auto dependencyPath = toStorePath(store, NoBuild, dependency);
+        auto dependencyPath = toStorePath(*state, store, NoBuild, dependency);
         auto dependencyPathHash = storePathToHash(dependencyPath);
 
         PathSet closure;
